@@ -5,7 +5,7 @@ ArkSearch数据提供脚本
 
  ## TODO
 
- - github action 自动更新
+ - [ ] github action 自动更新
 
 ## 鸣谢
  
