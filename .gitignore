@@ -1,0 +1,6 @@
+data
+!core/data
+gamedata
+__pycache__
+
+.idea
