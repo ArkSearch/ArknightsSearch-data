@@ -1,5 +1,6 @@
-import os
-from core.util import json, sort_dict
+from core.util import sort_dict, Save
+
+save = Save('story')
 
 from .data import *
 from .zone_name import *
@@ -15,12 +16,12 @@ char_index = sort_dict(char_index)
 zone_index = sort_dict(zone_index)
 
 # 基础数据
-json.dump({i[0]: i[1].dump for i in story_data.items()}, os.path.join(base, 'story_data.json'))
-json.dump(text_data, os.path.join(base, 'text_data.json'))
-json.dump(zone_name, os.path.join(base, 'zone_name.json'))
+save('story_data', {i[0]: i[1].dump for i in story_data.items()})
+save('text_data', text_data)
+save('zone_name', zone_name)
 # text索引
-json.dump(text_index, os.path.join(base, 'text_index.json'))
+save('text_index', text_index)
 # char索引
-json.dump(char_index, os.path.join(base, 'char_index.json'))
+save('char_index', char_index)
 # zone索引
-json.dump(zone_index, os.path.join(base, 'zone_index.json'))
+save('zone_index', zone_index)

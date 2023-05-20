@@ -1,15 +1,11 @@
-__all__ = ['story_data', 'text_data', 'raw_text_data', 'base']
+__all__ = ['story_data', 'text_data', 'raw_text_data']
 
 import os
 import re
 
 from core.util import json
-from core.constant import story_table_path, roguelike_topic_path, story_path, data_path
+from core.constant import story_table_path, roguelike_topic_path, story_path
 from core.data.story import StoryParser, StoryData, InvalidData
-
-base = os.path.join(data_path, 'story')
-if not os.path.exists(base):
-    os.mkdir(base)
 
 story_data: dict[str, StoryData] = {}
 text_data: dict[str, dict[str, str]] = {}

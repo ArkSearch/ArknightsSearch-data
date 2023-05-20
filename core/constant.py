@@ -4,6 +4,7 @@ cwd = os.getcwd()
 
 # 输出数据
 data_path = os.path.join(cwd, 'data')
+hash_path = os.path.join(cwd, 'hash')
 # 游戏数据
 gamedata_path = os.path.join(cwd, 'gamedata')
 resource_path = os.path.join(gamedata_path, '%s', 'gamedata')
