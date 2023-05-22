@@ -1,1 +1,2 @@
 pysimdjson==5.0.2
+aiohttp~=3.8.4
