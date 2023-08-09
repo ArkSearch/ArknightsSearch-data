@@ -46,7 +46,11 @@ class MemoryData(StoryData):
         self.type = 'Memory'
         self.name = story_name[self.id]
         # 角色id
-        self.zone = self.filename.split('_', 3)[1]
+        group = self.filename.split('_', 3)
+        self.zone = group[1]
+        if group[3] != '1':
+            for lang in self.name:
+                self.name[lang] += ' ' + group[3]
 
 
 class MainData(StoryData):
