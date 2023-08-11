@@ -1,7 +1,7 @@
 from typing import Optional, Union
 from copy import deepcopy
 
-from core.name import story_name, story_code, month_squad_name
+from core.name import story_name, story_code, month_squad_name, activity_id2code
 from .error import InvalidData
 
 """
@@ -151,12 +151,20 @@ class ActivityStory(StoryData):
             'zh_CN': '结局 %s'
         }
     }
+    mini_story = {
+        # zoneId里没有mini的坏id（
+        'act4d0',
+        'act7d5',
+        'act10d5',
+        'act13d0',
+        'act15d5'
+    }
 
     def __init__(self, story_id: str):
         super().__init__(story_id)
         self.type = 'Activity'
-        self.parse_name()
         self.parse_zone()
+        self.parse_name()
 
     def parse_name(self):
         if self.id.split('/')[2] in ['guide', 'training', 'level']:
@@ -180,10 +188,13 @@ class ActivityStory(StoryData):
                 return self.set_name(group[2], 'actfun')
             elif group[1].endswith('lock'):
                 return self.set_name(group[2].removeprefix('st'), 'lock')
-            elif group[1].endswith('mini'):
+            elif group[1].endswith('mini') or group[1] in self.mini_story:
                 # 迷你故事集
-                self.name = story_name[self.id]
-                return
+                return self.set_name(
+                    f'{activity_id2code[self.zone]}-{group[-1].upper().replace("0", "")}',
+                    'raw',
+                    story_name[self.id]
+                )
             elif group[2] == 'ending':
                 # 目前仅在生稀盐酸发现，结局剧情
                 return self.set_name(group[3], 'ending')
