@@ -23,10 +23,13 @@ class StoryData:
         self.id = story_id
         self.filename = story_id.split('/')[-1]
 
-    def set_name(self, name: str, _type: str):
+    def set_name(self, name: str, _type: str, name_dict: dict[str, str] = None):
         data = deepcopy(self.lang[_type])
         for key in data:
-            data[key] = data[key] % name
+            if name_dict:
+                data[key] = data[key] % (name, name_dict.get(key) or name_dict['zh_CN'])
+            else:
+                data[key] = data[key] % name
         self.name = data
 
     @property
@@ -56,16 +59,16 @@ class MemoryData(StoryData):
 class MainData(StoryData):
     lang = {
         'beg': {
-            'zh_CN': '%s 行动前'
+            'zh_CN': '%s %s 行动前'
         },
         'end': {
-            'zh_CN': '%s 行动后'
+            'zh_CN': '%s %s 行动后'
         },
         'recap': {
             'zh_CN': '第%s章回顾'
         },
         'raw': {
-            'zh_CN': '%s'
+            'zh_CN': '%s %s'
         }
     }
 
@@ -81,9 +84,9 @@ class MainData(StoryData):
             if group[-1] == 'recap':
                 return self.set_name(group[2], 'recap')
             elif group[1] == 'main':
-                return self.set_name(story_code[self.id], group[3])
+                return self.set_name(story_code[self.id], group[3], story_name[self.id])
             elif group[1] in ['st', 'spst']:
-                return self.set_name(story_code[self.id], 'raw')
+                return self.set_name(story_code[self.id], 'raw', story_name[self.id])
         elif group[0] == 'main':
             if '_'.join(group[-2:]) == 'zone_enter':
                 # 已知剧情(10/11章)仅有视频资源，无文本
@@ -127,13 +130,13 @@ class RogueData(StoryData):
 class ActivityStory(StoryData):
     lang = {
         'beg': {
-            'zh_CN': '%s 行动前'
+            'zh_CN': '%s %s 行动前'
         },
         'end': {
-            'zh_CN': '%s 行动后'
+            'zh_CN': '%s %s 行动后'
         },
         'raw': {
-            'zh_CN': '%s'
+            'zh_CN': '%s %s'
         },
         'entry': {
             'zh_CN': '%s进入活动'
@@ -163,7 +166,7 @@ class ActivityStory(StoryData):
 
         if self.filename == 'level_act12side_tr01_end':
             # 角你怎么训练关后塞剧情啊（
-            return self.set_name('DH-TR-1', 'end')
+            return self.set_name('DH-TR-1', 'end', {'zh_CN': ''})
 
         if group[0] == 'level':
             if group[2] == 'hidden':
@@ -185,10 +188,10 @@ class ActivityStory(StoryData):
                 # 目前仅在生稀盐酸发现，结局剧情
                 return self.set_name(group[3], 'ending')
             elif group[-1] in ['beg', 'end']:
-                return self.set_name(story_code[self.id], group[-1])
+                return self.set_name(story_code[self.id], group[-1], story_name[self.id])
             elif group[-1].startswith('st'):
                 if story_code[self.id]:
-                    self.set_name(story_code[self.id], 'raw')
+                    self.set_name(story_code[self.id], 'raw', story_name[self.id])
                 else:
                     self.name = story_name[self.id]
                 return
