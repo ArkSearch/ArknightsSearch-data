@@ -14,6 +14,7 @@ class StoryData:
     filename: str
     type: str
     name: dict[str, str]
+    code: str | None
     zone: str
     zone_name: dict[str, str]
     data: Optional[dict]
@@ -22,15 +23,16 @@ class StoryData:
     def __init__(self, story_id: str):
         self.id = story_id
         self.filename = story_id.split('/')[-1]
+        self.code = None
 
-    def set_name(self, name: str, _type: str, name_dict: dict[str, str] = None):
+    def format_name(self, name: str | dict[str, str], _type: str):
         data = deepcopy(self.lang[_type])
         for key in data:
-            if name_dict:
-                data[key] = data[key] % (name, name_dict.get(key) or name_dict['zh_CN'])
+            if isinstance(name, dict):
+                data[key] = data[key] % (name.get(key) or name['zh_CN'])
             else:
                 data[key] = data[key] % name
-        self.name = data
+        return data
 
     @property
     def dump(self) -> dict:
@@ -39,6 +41,7 @@ class StoryData:
             # 'filename': self.filename,
             'type': self.type,
             'name': self.name,
+            'code': self.code,
             'zone': self.zone
         }
 
@@ -48,6 +51,7 @@ class MemoryData(StoryData):
         super().__init__(story_id)
         self.type = 'Memory'
         self.name = story_name[self.id]
+        self.code = None
         # 角色id
         group = self.filename.split('_', 3)
         self.zone = group[1]
@@ -58,17 +62,8 @@ class MemoryData(StoryData):
 
 class MainData(StoryData):
     lang = {
-        'beg': {
-            'zh_CN': '%s %s 行动前'
-        },
-        'end': {
-            'zh_CN': '%s %s 行动后'
-        },
         'recap': {
             'zh_CN': '第%s章回顾'
-        },
-        'raw': {
-            'zh_CN': '%s %s'
         }
     }
 
@@ -82,17 +77,18 @@ class MainData(StoryData):
         group = self.filename.split('_')
         if group[0] == 'level':
             if group[-1] == 'recap':
-                return self.set_name(group[2], 'recap')
-            elif group[1] == 'main':
-                return self.set_name(story_code[self.id], group[3], story_name[self.id])
-            elif group[1] in ['st', 'spst']:
-                return self.set_name(story_code[self.id], 'raw', story_name[self.id])
+                self.name = self.format_name(group[2], 'recap')
+            elif group[1] in ['main', 'st', 'spst']:
+                self.name = story_name[self.id]
+                self.code = story_code[self.id]
+            else:
+                raise TypeError(f'Unknown story type {self.id}')
         elif group[0] == 'main':
             if '_'.join(group[-2:]) == 'zone_enter':
                 # 已知剧情(10/11章)仅有视频资源，无文本
                 raise InvalidData
-
-        raise TypeError(f'Unknown story type {self.id}')
+        else:
+            raise TypeError(f'Unknown story type {self.id}')
 
     def parse_zone(self):
         group = self.filename.split('_')
@@ -129,15 +125,6 @@ class RogueData(StoryData):
 
 class ActivityStory(StoryData):
     lang = {
-        'beg': {
-            'zh_CN': '%s %s 行动前'
-        },
-        'end': {
-            'zh_CN': '%s %s 行动后'
-        },
-        'raw': {
-            'zh_CN': '%s %s'
-        },
         'entry': {
             'zh_CN': '%s进入活动'
         },
@@ -174,42 +161,49 @@ class ActivityStory(StoryData):
 
         if self.filename == 'level_act12side_tr01_end':
             # 角你怎么训练关后塞剧情啊（
-            return self.set_name('DH-TR-1', 'end', {'zh_CN': ''})
+            self.code = 'DH-TR-1'
+            self.name = {}
+
+            from core.util import json
+            from core.constant import stage_path, support_language
+
+            for lang in support_language:
+                for stage_id, stage_data in json.load(stage_path % lang)['stages'].items():
+                    if stage_id == 'level_act12side_tr01':
+                        self.name[lang] = stage_data['name']
+            return
 
         if group[0] == 'level':
             if group[2] == 'hidden':
                 # act13side_hidden
                 # 长夜临光隐藏剧情，未发现入口
                 raise InvalidData
-            if group[-1] == 'entry':
-                return self.set_name('', 'entry')
+            elif group[-1] == 'entry':
+                self.name = self.format_name('', 'entry')
             elif group[1].endswith('fun') or group[1] == 'act17d7':
                 # 愚人节剧情
-                return self.set_name(group[2], 'actfun')
+                self.name = self.format_name(group[2], 'actfun')
             elif group[1].endswith('lock'):
-                return self.set_name(group[2].removeprefix('st'), 'lock')
+                self.name = self.format_name(group[2].removeprefix('st'), 'lock')
             elif group[1].endswith('mini') or group[1] in self.mini_story:
                 # 迷你故事集
-                return self.set_name(
-                    f'{activity_id2code[self.zone]}-{group[-1].upper().replace("0", "")}',
-                    'raw',
-                    story_name[self.id]
-                )
+                self.code = f'{activity_id2code[self.zone]}-{group[-1].upper().replace("0", "")}'
+                self.name = story_name[self.id]
             elif group[2] == 'ending':
                 # 目前仅在生稀盐酸发现，结局剧情
-                return self.set_name(group[3], 'ending')
+                self.name = self.format_name(group[3], 'ending')
             elif group[-1] in ['beg', 'end']:
-                return self.set_name(story_code[self.id], group[-1], story_name[self.id])
+                self.name = story_name[self.id]
+                self.code = story_code[self.id]
             elif group[-1].startswith('st'):
-                if story_code[self.id]:
-                    self.set_name(story_code[self.id], 'raw', story_name[self.id])
-                else:
-                    self.name = story_name[self.id]
-                return
+                self.name = story_name[self.id]
+                self.code = story_code[self.id]
+            else:
+                raise TypeError(f'Unknown story type {self.id}')
         elif group[0] in {'guide', 'tutorial', 'ui'}:
             raise InvalidData
-
-        raise TypeError(f'Unknown story type {self.id}')
+        else:
+            raise TypeError(f'Unknown story type {self.id}')
 
     def parse_zone(self):
         self.zone = self.id.split('/')[1]
