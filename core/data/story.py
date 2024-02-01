@@ -234,7 +234,8 @@ class StoryParser:
                 'rune',  # 危机合约引导，
                 'guide',  # 操作引导
                 'roguelike',  # 肉鸽剧情
-                'record'  # 10/11章note
+                'record',  # 10/11章note
+                'sandboxperm'  # TODO
                 # 好懒，不想适配（
             ]:
                 raise InvalidData
