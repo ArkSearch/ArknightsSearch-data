@@ -1,5 +1,6 @@
 __all__ = ['activity_id2code']
 
+import re
 import json
 from core.constant import stage_path
 
@@ -15,7 +16,7 @@ for stage_id, stage_data in data['stages'].items():
     if not stage_data['levelId']:
         continue
 
-    zone_id = stage_data['levelId'].split('/')[1].lower()
+    zone_id = re.split(r'[/\\]', stage_data['levelId'])[1].lower()
 
     if zone_id in activity_id2code:
         continue
