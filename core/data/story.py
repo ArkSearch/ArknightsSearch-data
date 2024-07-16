@@ -114,8 +114,9 @@ class RogueData(StoryData):
 
     def parse_name(self):
         group = self.filename.split('_')
-        if group[1] == 'record' and group[3] == '3':
+        if group[1] == 'record' and int(group[3]) > 2:
             # 就你叫record是吧
+            # 萨卡兹肉鸽更新：看来以后都叫record，但为什么details数据没变呢.jpg
             group[1] = 'chat'
         name = deepcopy(month_squad_name['_'.join(group[:-1])])
         for key in name:
