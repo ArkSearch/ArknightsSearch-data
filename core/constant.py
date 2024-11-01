@@ -20,3 +20,5 @@ activity_path = os.path.join(excel_path, 'activity_table.json')
 char_path = os.path.join(excel_path, 'character_table.json')
 
 support_language = ['zh_CN', 'ja_JP', 'en_US']
+
+invalid_story_id = ['act1vautochess','level_act1vautochess_entry']

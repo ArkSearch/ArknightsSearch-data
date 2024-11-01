@@ -4,8 +4,8 @@ import os
 import re
 
 from core.util import json
-from core.constant import story_table_path, roguelike_topic_path, story_path
 from core.data.story import StoryParser, StoryData, InvalidData
+from core.constant import story_table_path, roguelike_topic_path, story_path, invalid_story_id
 
 story_data: dict[str, StoryData] = {}
 text_data: dict[str, dict[str, str]] = {}
@@ -44,6 +44,8 @@ for lang in ['zh_CN']:
     raw_data = {}
     path = story_path % lang
     for _id, story in story_data.items():
+        if story.filename in invalid_story_id:
+            continue
         with open(os.path.join(path, story.id + '.txt'), mode='rt', encoding='utf-8') as f:
             text = f.read()
             data[_id] = r3.sub('\n', r2.sub('', r1.sub(r'\1: ', text)))
