@@ -25,7 +25,7 @@ for _id in json.load(story_table_path % 'zh_CN'):
 
 for rogue_data in json.load(roguelike_topic_path % 'zh_CN')['details'].values():
     for squad in rogue_data['archiveComp']['chat']['chat'].values():
-        for chat in squad['clientChatItemData']:
+        for chat in squad.get('clientChatItemData') or squad['chatItemList']:
             _id = chat['chatStoryId'].lower()
             try:
                 story_data[str(seq)] = StoryParser.parse(_id)
